@@ -1,9 +1,8 @@
-
-use rltk::RGB;
 use crate::components::*;
 use crate::map::*;
-use specs::prelude::*;
 use crate::State;
+use rltk::RGB;
+use specs::prelude::*;
 
 pub fn new_game_state() -> State {
     let mut gs = State { ecs: World::new() };
@@ -11,12 +10,17 @@ pub fn new_game_state() -> State {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
-    gs.ecs.insert(new_map());
+    let (rooms, map) = new_map_rooms_and_corridors();
+    gs.ecs.insert(map);
+    let (player_x, player_y) = rooms[0].center();
 
     // entities
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 25 })
+        .with(Position {
+            x: player_x,
+            y: player_y,
+        })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),

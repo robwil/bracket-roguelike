@@ -1,14 +1,15 @@
-use crate::world::new_game_state;
-use crate::player::player_input;
 use crate::components::*;
 use crate::map::draw_map;
 use crate::map::TileType;
+use crate::player::player_input;
+use crate::world::new_game_state;
 use rltk::{GameState, Rltk};
 use specs::prelude::*;
 
 mod components;
 mod map;
 mod player;
+mod rect;
 mod world;
 
 pub struct State {
