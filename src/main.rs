@@ -1,6 +1,5 @@
 use crate::components::*;
-use crate::map::draw_map;
-use crate::map::TileType;
+use crate::map::Map;
 use crate::player::player_input;
 use crate::world::new_game_state;
 use rltk::{GameState, Rltk};
@@ -23,8 +22,8 @@ impl GameState for State {
 
         {
             // TODO: need to understand this part of Specs better. It seems very much like an IoC container, being able to fetch by type.
-            let map = self.ecs.fetch::<Vec<TileType>>();
-            draw_map(&map, ctx);
+            let map = self.ecs.fetch::<Map>();
+            map.draw(ctx);
         }
 
         let positions = self.ecs.read_storage::<Position>();

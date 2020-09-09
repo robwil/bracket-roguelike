@@ -10,11 +10,10 @@ pub fn new_game_state() -> State {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
-    let (rooms, map) = new_map_rooms_and_corridors();
-    gs.ecs.insert(map);
-    let (player_x, player_y) = rooms[0].center();
+    let map = Map::new_map_rooms_and_corridors();
 
     // entities
+    let (player_x, player_y) = map.rooms[0].center();
     gs.ecs
         .create_entity()
         .with(Position {
@@ -28,6 +27,8 @@ pub fn new_game_state() -> State {
         })
         .with(Player {})
         .build();
+
+    gs.ecs.insert(map);
 
     gs
 }
