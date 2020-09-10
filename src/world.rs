@@ -8,6 +8,7 @@ pub fn new_game_state() -> State {
     let mut gs = State { ecs: World::new() };
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
+    gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Player>();
 
     let map = Map::new_map_rooms_and_corridors();
@@ -24,6 +25,10 @@ pub fn new_game_state() -> State {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
             bg: RGB::named(rltk::BLACK),
+        })
+        .with(Viewshed {
+            visible_tiles: Vec::new(),
+            range: 8,
         })
         .with(Player {})
         .build();
