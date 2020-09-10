@@ -29,6 +29,7 @@ pub fn new_game_state() -> State {
         .with(Viewshed {
             visible_tiles: Vec::new(),
             range: 8,
+            dirty: true,
         })
         .with(Player {})
         .build();

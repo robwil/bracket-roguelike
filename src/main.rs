@@ -33,7 +33,7 @@ impl GameState for State {
         {
             // TODO: need to understand this part of Specs better. It seems very much like an IoC container, being able to fetch by type.
             let map = self.ecs.fetch::<Map>();
-            map.draw(&self.ecs, ctx);
+            map.draw(ctx);
         }
 
         let positions = self.ecs.read_storage::<Position>();
