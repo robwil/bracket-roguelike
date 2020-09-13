@@ -1,3 +1,4 @@
+use crate::systems::MapIndexingSystem;
 use crate::components::*;
 use crate::map::Map;
 use crate::player::player_input;
@@ -26,6 +27,7 @@ impl State {
         };
         gs.ecs.register::<Position>();
         gs.ecs.register::<Name>();
+        gs.ecs.register::<BlocksTile>();
         gs.ecs.register::<Renderable>();
         gs.ecs.register::<Viewshed>();
         gs.ecs.register::<Player>();
@@ -89,6 +91,7 @@ impl State {
                 .with(Name {
                     name: format!("{} #{}", &name, i),
                 })
+                .with(BlocksTile{})
                 .with(Monster {})
                 .build();
         }
@@ -103,6 +106,8 @@ impl State {
         vis.run_now(&self.ecs);
         let mut monster_ai = MonsterAI {};
         monster_ai.run_now(&self.ecs);
+        let mut map_indexing = MapIndexingSystem {};
+        map_indexing.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }

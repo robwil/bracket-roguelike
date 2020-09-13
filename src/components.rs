@@ -15,6 +15,9 @@ pub struct Name {
     pub name: String,
 }
 
+#[derive(Component, Debug)]
+pub struct BlocksTile {}
+
 #[derive(Component)]
 pub struct Renderable {
     // TODO: change this to use tile set
