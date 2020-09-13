@@ -1,41 +1,68 @@
-use crate::components::Position;
-use crate::map::Map;
 use crate::components::Monster;
-use crate::components::Name;
+use crate::components::Position;
 use crate::components::Viewshed;
-use rltk::{console, Point};
+use crate::components::WantsToMelee;
+use crate::game::RunState;
+use crate::map::Map;
+use rltk::Point;
 use specs::prelude::*;
 
 pub struct MonsterAI {}
 
 impl<'a> System<'a> for MonsterAI {
     #[allow(clippy::type_complexity)]
-    type SystemData = ( WriteExpect<'a, Map>,
-                        ReadExpect<'a, Point>,
-                        WriteStorage<'a, Viewshed>,
-                        ReadStorage<'a, Monster>,
-                        ReadStorage<'a, Name>,
-                        WriteStorage<'a, Position>);
+    type SystemData = (
+        ReadExpect<'a, Map>,
+        ReadExpect<'a, Point>,
+        ReadExpect<'a, Entity>,
+        ReadExpect<'a, RunState>,
+        Entities<'a>,
+        WriteStorage<'a, Viewshed>,
+        ReadStorage<'a, Monster>,
+        WriteStorage<'a, Position>,
+        WriteStorage<'a, WantsToMelee>,
+    );
 
-    fn run(&mut self, data : Self::SystemData) {
-        let (mut map, player_pos, mut viewshed, monster, name, mut position) = data;
+    fn run(&mut self, data: Self::SystemData) {
+        let (
+            map,
+            player_pos,
+            player_entity,
+            runstate,
+            entities,
+            mut viewshed,
+            monster,
+            mut position,
+            mut wants_to_melee,
+        ) = data;
 
-        for (mut viewshed,_monster,name,mut pos) in (&mut viewshed, &monster, &name, &mut position).join() {
-            let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
+        if *runstate != RunState::MonsterTurn {
+            return;
+        }
+
+        for (entity, mut viewshed, _monster, mut pos) in
+            (&entities, &mut viewshed, &monster, &mut position).join()
+        {
+            let distance =
+                rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
+            // If monster is close enough, attack the player
             if distance < 1.5 {
-                // Attack goes here
-                console::log(&format!("{} shouts insults", name.name));
-                return;
-            }
-
-            // If monster can see player, move toward (aka chase) player via A* search.
-            if viewshed.visible_tiles.contains(&*player_pos) {
+                wants_to_melee
+                    .insert(
+                        entity,
+                        WantsToMelee {
+                            target: *player_entity,
+                        },
+                    )
+                    .expect("Monster unable to insert attack on Player");
+            } else if viewshed.visible_tiles.contains(&*player_pos) {
+                // If monster can see player, move toward (aka chase) player via A* search.
                 let path = rltk::a_star_search(
                     map.xy_idx(pos.x, pos.y) as i32,
                     map.xy_idx(player_pos.x, player_pos.y) as i32,
-                    &mut *map
+                    &*map,
                 );
-                if path.success && path.steps.len()>1 {
+                if path.success && path.steps.len() > 1 {
                     pos.x = path.steps[1] as i32 % map.width;
                     pos.y = path.steps[1] as i32 / map.width;
                     viewshed.dirty = true;

@@ -13,20 +13,15 @@ use rltk::{GameState, Rltk};
 use specs::prelude::*;
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum RunState {
-    Paused,
-    Running,
-}
+pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn }
 
 pub struct State {
     pub ecs: World,
-    pub run_state: RunState,
 }
 impl State {
     pub fn new() -> State {
         let mut gs = State {
             ecs: World::new(),
-            run_state: RunState::Running,
         };
         gs.ecs.register::<Position>();
         gs.ecs.register::<Name>();
@@ -43,7 +38,7 @@ impl State {
 
         // entities
         let (player_x, player_y) = map.rooms[0].center();
-        gs.ecs
+        let player_entity = gs.ecs
             .create_entity()
             .with(Position {
                 x: player_x,
@@ -105,7 +100,10 @@ impl State {
         }
 
         gs.ecs.insert(map);
+        // TODO: I hate how these are just inserted and used based on type. would rather wrap this in a Struct for less bug chances in future.
         gs.ecs.insert(Point::new(player_x, player_y));
+        gs.ecs.insert(player_entity);
+        gs.ecs.insert(RunState::PreRun);
 
         gs
     }
@@ -127,16 +125,37 @@ impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
 
-        if self.run_state == RunState::Running {
-            self.run_systems();
-            self.run_state = RunState::Paused;
-        } else {
-            self.run_state = player_input(self, ctx);
+        let mut newrunstate;
+        {
+            let runstate = self.ecs.fetch::<RunState>();
+            newrunstate = *runstate;
         }
 
+        match newrunstate {
+            RunState::PreRun => {
+                self.run_systems();
+                newrunstate = RunState::AwaitingInput;
+            }
+            RunState::AwaitingInput => {
+                newrunstate = player_input(self, ctx);
+            }
+            RunState::PlayerTurn => {
+                self.run_systems();
+                newrunstate = RunState::MonsterTurn;
+            }
+            RunState::MonsterTurn => {
+                self.run_systems();
+                newrunstate = RunState::AwaitingInput;
+            }
+        }
+
+        {
+            let mut runwriter = self.ecs.write_resource::<RunState>();
+            *runwriter = newrunstate;
+        }
+        // TODO: I'd love to only the below if stuff changed, but I guess change detection might be hard.
         delete_the_dead(&mut self.ecs);
 
-        // TODO: need to understand this part of Specs better. It seems very much like an IoC container, being able to fetch by type.
         let map = self.ecs.fetch::<Map>();
         map.draw(ctx);
 
