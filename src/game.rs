@@ -27,6 +27,7 @@ impl State {
         };
         gs.ecs.register::<Position>();
         gs.ecs.register::<Name>();
+        gs.ecs.register::<CombatStats>();
         gs.ecs.register::<BlocksTile>();
         gs.ecs.register::<Renderable>();
         gs.ecs.register::<Viewshed>();
@@ -53,6 +54,7 @@ impl State {
                 range: 8,
                 dirty: true,
             })
+            .with(CombatStats{ max_hp: 30, hp: 30, defense: 2, power: 5 })
             .with(Name {
                 name: "Player".to_owned(),
             })
@@ -88,6 +90,7 @@ impl State {
                     range: 8,
                     dirty: true,
                 })
+                .with(CombatStats{ max_hp: 16, hp: 16, defense: 1, power: 4 })
                 .with(Name {
                     name: format!("{} #{}", &name, i),
                 })
