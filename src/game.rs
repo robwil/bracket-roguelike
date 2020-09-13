@@ -1,3 +1,6 @@
+use crate::systems::damage_system::delete_the_dead;
+use crate::systems::DamageSystem;
+use crate::systems::MeleeCombatSystem;
 use crate::systems::MapIndexingSystem;
 use crate::components::*;
 use crate::map::Map;
@@ -31,6 +34,8 @@ impl State {
         gs.ecs.register::<BlocksTile>();
         gs.ecs.register::<Renderable>();
         gs.ecs.register::<Viewshed>();
+        gs.ecs.register::<WantsToMelee>();
+        gs.ecs.register::<SufferDamage>();
         gs.ecs.register::<Player>();
         gs.ecs.register::<Monster>();
 
@@ -111,6 +116,10 @@ impl State {
         monster_ai.run_now(&self.ecs);
         let mut map_indexing = MapIndexingSystem {};
         map_indexing.run_now(&self.ecs);
+        let mut melee_combat = MeleeCombatSystem {};
+        melee_combat.run_now(&self.ecs);
+        let mut damage = DamageSystem{};
+        damage.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -124,6 +133,8 @@ impl GameState for State {
         } else {
             self.run_state = player_input(self, ctx);
         }
+
+        delete_the_dead(&mut self.ecs);
 
         // TODO: need to understand this part of Specs better. It seems very much like an IoC container, being able to fetch by type.
         let map = self.ecs.fetch::<Map>();
