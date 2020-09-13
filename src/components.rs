@@ -10,6 +10,11 @@ pub struct Position {
     pub y: i32,
 }
 
+#[derive(Component, Debug)]
+pub struct Name {
+    pub name: String,
+}
+
 #[derive(Component)]
 pub struct Renderable {
     // TODO: change this to use tile set
@@ -27,3 +32,6 @@ pub struct Viewshed {
 
 #[derive(Component, Debug)]
 pub struct Player {}
+
+#[derive(Component, Debug)]
+pub struct Monster {}
