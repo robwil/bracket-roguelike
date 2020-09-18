@@ -16,7 +16,15 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let players = ecs.read_storage::<Player>();
     let combat_stats = ecs.read_storage::<CombatStats>();
     let map = ecs.fetch::<Map>();
+    let player = ecs.fetch::<Entity>();
     let entities = ecs.entities();
+
+    if let Some(player_stats) = combat_stats.get(*player) {
+        if player_stats.hp <= 0 {
+            // if player is dead, they shouldn't be moving
+            return;
+        }
+    }
 
     for (entity, _player, pos, viewshed) in
         (&entities, &players, &mut positions, &mut viewsheds).join()

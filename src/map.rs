@@ -1,6 +1,6 @@
+use crate::constants::MAP_COUNT;
 use crate::constants::MAP_HEIGHT;
 use crate::constants::MAP_WIDTH;
-use crate::constants::MAP_COUNT;
 use crate::rect::Rect;
 use rltk::Algorithm2D;
 use rltk::BaseMap;

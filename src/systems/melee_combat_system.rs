@@ -2,22 +2,25 @@ use crate::components::CombatStats;
 use crate::components::Name;
 use crate::components::SufferDamage;
 use crate::components::WantsToMelee;
-use rltk::console;
+use crate::game::GameLog;
 use specs::prelude::*;
 
 pub struct MeleeCombatSystem {}
 
 impl<'a> System<'a> for MeleeCombatSystem {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         WriteStorage<'a, WantsToMelee>,
         ReadStorage<'a, Name>,
         ReadStorage<'a, CombatStats>,
         WriteStorage<'a, SufferDamage>,
+        WriteExpect<'a, GameLog>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut wants_melee, names, combat_stats, mut inflict_damage) = data;
+        let (entities, mut wants_melee, names, combat_stats, mut inflict_damage, mut gamelog) =
+            data;
 
         for (_entity, wants_melee, name, stats) in
             (&entities, &wants_melee, &names, &combat_stats).join()
@@ -33,12 +36,12 @@ impl<'a> System<'a> for MeleeCombatSystem {
                     let target_name = names.get(wants_melee.target).unwrap();
                     let damage = i32::max(0, stats.power - target_stats.defense);
                     if damage == 0 {
-                        console::log(&format!(
+                        gamelog.entries.push(format!(
                             "{} is unable to hurt {}",
                             &name.name, &target_name.name
                         ));
                     } else {
-                        console::log(&format!(
+                        gamelog.entries.push(format!(
                             "{} hits {}, for {} hp.",
                             &name.name, &target_name.name, damage
                         ));

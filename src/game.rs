@@ -1,29 +1,37 @@
-use crate::systems::damage_system::delete_the_dead;
-use crate::systems::DamageSystem;
-use crate::systems::MeleeCombatSystem;
-use crate::systems::MapIndexingSystem;
 use crate::components::*;
+use crate::gui;
 use crate::map::Map;
 use crate::player::player_input;
+use crate::systems::damage_system::delete_the_dead;
+use crate::systems::DamageSystem;
+use crate::systems::MapIndexingSystem;
+use crate::systems::MeleeCombatSystem;
 use crate::systems::MonsterAI;
 use crate::systems::VisibilitySystem;
-use crate::gui;
 use rltk::Point;
 use rltk::RGB;
 use rltk::{GameState, Rltk};
 use specs::prelude::*;
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn }
+pub enum RunState {
+    AwaitingInput,
+    PreRun,
+    PlayerTurn,
+    MonsterTurn,
+}
+
+pub struct GameLog {
+    // TODO: make this a limited length buffer. right now we have no scrollback so should be 5 max.
+    pub entries: Vec<String>,
+}
 
 pub struct State {
     pub ecs: World,
 }
 impl State {
     pub fn new() -> State {
-        let mut gs = State {
-            ecs: World::new(),
-        };
+        let mut gs = State { ecs: World::new() };
         gs.ecs.register::<Position>();
         gs.ecs.register::<Name>();
         gs.ecs.register::<CombatStats>();
@@ -39,7 +47,8 @@ impl State {
 
         // entities
         let (player_x, player_y) = map.rooms[0].center();
-        let player_entity = gs.ecs
+        let player_entity = gs
+            .ecs
             .create_entity()
             .with(Position {
                 x: player_x,
@@ -55,7 +64,12 @@ impl State {
                 range: 8,
                 dirty: true,
             })
-            .with(CombatStats{ max_hp: 30, hp: 30, defense: 2, power: 5 })
+            .with(CombatStats {
+                max_hp: 30,
+                hp: 30,
+                defense: 2,
+                power: 5,
+            })
             .with(Name {
                 name: "Player".to_owned(),
             })
@@ -91,16 +105,24 @@ impl State {
                     range: 8,
                     dirty: true,
                 })
-                .with(CombatStats{ max_hp: 16, hp: 16, defense: 1, power: 4 })
+                .with(CombatStats {
+                    max_hp: 16,
+                    hp: 16,
+                    defense: 1,
+                    power: 4,
+                })
                 .with(Name {
                     name: format!("{} #{}", &name, i),
                 })
-                .with(BlocksTile{})
+                .with(BlocksTile {})
                 .with(Monster {})
                 .build();
         }
 
         gs.ecs.insert(map);
+        gs.ecs.insert(GameLog {
+            entries: vec!["Welcome to Rusty Roguelike".to_string()],
+        });
         // TODO: I hate how these are just inserted and used based on type. would rather wrap this in a Struct for less bug chances in future.
         gs.ecs.insert(Point::new(player_x, player_y));
         gs.ecs.insert(player_entity);
@@ -117,7 +139,7 @@ impl State {
         map_indexing.run_now(&self.ecs);
         let mut melee_combat = MeleeCombatSystem {};
         melee_combat.run_now(&self.ecs);
-        let mut damage = DamageSystem{};
+        let mut damage = DamageSystem {};
         damage.run_now(&self.ecs);
         self.ecs.maintain();
     }
