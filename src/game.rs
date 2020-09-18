@@ -7,6 +7,7 @@ use crate::map::Map;
 use crate::player::player_input;
 use crate::systems::MonsterAI;
 use crate::systems::VisibilitySystem;
+use crate::gui;
 use rltk::Point;
 use rltk::RGB;
 use rltk::{GameState, Rltk};
@@ -168,5 +169,7 @@ impl GameState for State {
                 ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
             }
         }
+
+        gui::draw_ui(&self.ecs, ctx);
     }
 }

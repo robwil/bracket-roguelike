@@ -1,7 +1,9 @@
 use crate::game::State;
 
+mod constants;
 mod components;
 mod game;
+mod gui;
 mod map;
 mod player;
 mod rect;

@@ -21,7 +21,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     for (entity, _player, pos, viewshed) in
         (&entities, &players, &mut positions, &mut viewsheds).join()
     {
-        // TODO: this is a very leaky abstraction, especially the 79/49 constants and xy_idx
+        // TODO: this is a very leaky abstraction, especially requiring everything to call xy_idx
         if pos.x + delta_x < 1
             || pos.x + delta_x > map.width - 1
             || pos.y + delta_y < 1
@@ -45,8 +45,8 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             }
         }
         if !map.blocked[destination_idx] {
-            pos.x = min(79, max(0, pos.x + delta_x));
-            pos.y = min(49, max(0, pos.y + delta_y));
+            pos.x = min(map.width - 1, max(0, pos.x + delta_x));
+            pos.y = min(map.height - 1, max(0, pos.y + delta_y));
             viewshed.dirty = true;
             player_pos.x = pos.x;
             player_pos.y = pos.y;
